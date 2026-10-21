@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Imperial Activity Ledger</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        /* Custom Theme Styles: DxD Crimson/Obsidian x Napoleon Imperial Gold */
+        :root {
+            --obsidian: #0a0a0c;
+            --obsidian-light: #16161a;
+            --gremory-crimson: #8b0000;
+            --gremory-glow: rgba(139, 0, 0, 0.6);
+            --imperial-gold: #D4AF37;
+            --imperial-gold-dim: #997a00;
+        }
+
+        body {
+            background-color: var(--obsidian);
+            color: #e0e0e0;
+            font-family: 'Inter', sans-serif;
+            background-image: radial-gradient(circle at top center, rgba(139, 0, 0, 0.15), transparent 60%);
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        .font-cinzel {
+            font-family: 'Cinzel', serif;
+        }
+
+        /* Neoclassical Ornate Borders */
+        .ornate-border {
+            border: 2px solid var(--imperial-gold-dim);
+            position: relative;
+            background: linear-gradient(145deg, var(--obsidian-light), var(--obsidian));
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.8), 0 0 15px var(--gremory-glow);
+        }
+        
+        .ornate-border::before, .ornate-border::after {
+            content: '';
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border: 2px solid var(--imperial-gold);
+            transition: all 0.3s ease;
+        }
+        .ornate-border::before {
+            top: -4px; left: -4px;
+            border-right: none; border-bottom: none;
+        }
+        .ornate-border::after {
+            bottom: -4px; right: -4px;
+            border-left: none; border-top: none;
+        }
+
+        .text-gold { color: var(--imperial-gold); }
+        .text-crimson { color: var(--gremory-crimson); }
+        .bg-crimson { background-color: var(--gremory-crimson); }
+        
+        .btn-imperial {
+            background: linear-gradient(to bottom, #a30000, var(--gremory-crimson));
+            color: var(--imperial-gold);
+            border: 1px solid var(--imperial-gold-dim);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+        .btn-imperial:hover {
+            box-shadow: 0 0 15px var(--gremory-glow), 0 0 5px var(--imperial-gold);
+            transform: translateY(-1px);
+            border-color: var(--imperial-gold);
+        }
+
+        .input-imperial {
+            background-color: #050505;
+            border: 1px solid #333;
+            color: #fff;
+            transition: all 0.3s ease;
+        }
+        .input-imperial:focus {
+            outline: none;
+            border-color: var(--imperial-gold);
+            box-shadow: 0 0 10px var(--gremory-glow);
+        }
+
+        /* Custom Checkbox */
+        .checkbox-container {
+            display: inline-flex;
+            align-items: center;
+            cursor: pointer;
+            position: relative;
+        }
+        .checkbox-container input {
+            position: absolute;
+            opacity: 0;
+            cursor: pointer;
+            height: 0;
+            width: 0;
+        }
+        .checkmark {
+            height: 24px;
+            width: 24px;
+            background-color: #050505;
+            border: 2px solid var(--imperial-gold-dim);
+            border-radius: 4px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.2s ease;
+        }
+        .checkbox-container:hover input ~ .checkmark {
+            border-color: var(--imperial-gold);
+            box-shadow: 0 0 8px var(--gremory-glow);
+        }
+        .checkbox-container input:checked ~ .checkmark {
+            background-color: var(--gremory-crimson);
+            border-color: var(--imperial-gold);
+        }
+        .checkmark:after {
+            content: '\f00c'; /* FontAwesome check */
+            font-family: 'Font Awesome 6 Free';
+            font-weight: 900;
+            color: var(--imperial-gold);
+            display: none;
+            font-size: 14px;
+        }
+        .checkbox-container input:checked ~ .checkmark:after {
+            display: block;
+        }
+
+        .task-item {
+            border-left: 3px solid var(--gremory-crimson);
+            transition: all 0.3s ease;
+        }
+        .task-item:hover {
+            border-left-color: var(--imperial-gold);
+            background-color: rgba(255, 255, 255, 0.03);
+        }
+        .task-completed {
+            opacity: 0.6;
+            text-decoration: line-through;
+            border-left-color: #333;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--obsidian); }
+        ::-webkit-scrollbar-thumb { background: var(--gremory-crimson); border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--imperial-gold); }
+
+        /* Modal / Message Box */
+        #message-box {
+            position: fixed; top: 20px; right: 20px; z-index: 1000;
+            transform: translateX(150%);
+            transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+        #message-box.show { transform: translateX(0); }
+    </style>
+</head>
+<body class="antialiased flex flex-col items-center justify-center p-4">
+
+    <!-- Message Notification Box -->
+    <div id="message-box" class="ornate-border px-6 py-4 rounded shadow-2xl flex items-center gap-3">
+        <i id="message-icon" class="fa-solid fa-circle-exclamation text-imperial"></i>
+        <span id="message-text" class="font-inter text-sm font-semibold">Message here</span>
+    </div>
+
+    <!-- Authentication View -->
+    <div id="auth-view" class="w-full max-w-md ornate-border p-8 rounded-lg mt-10">
+        <div class="text-center mb-8">
+            <i class="fa-solid fa-crown text-4xl text-gold mb-3 drop-shadow-md"></i>
+            <h1 class="font-cinzel text-3xl font-bold text-gold tracking-wider">Imperial Ledger</h1>
+            <p class="text-xs text-gray-400 mt-2 font-inter tracking-widest uppercase">Gremory Faction Authentication</p>
+        </div>
+
+        <form id="auth-form" class="space-y-5">
+            <div>
+                <label class="block text-xs font-bold text-gray-400 mb-1 uppercase tracking-wide">Decree (Email)</label>
+                <div class="relative">
+                    <i class="fa-solid fa-envelope absolute left-3 top-3 text-gray-500"></i>
+                    <input type="email" id="email-input" class="w-full input-imperial py-2 pl-10 pr-4 rounded" placeholder="commander@empire.com" required>
+                </div>
+            </div>
+            <div>
+                <label class="block text-xs font-bold text-gray-400 mb-1 uppercase tracking-wide">Seal (Password)</label>
+                <div class="relative">
+                    <i class="fa-solid fa-key absolute left-3 top-3 text-gray-500"></i>
+                    <input type="password" id="password-input" class="w-full input-imperial py-2 pl-10 pr-4 rounded" placeholder="••••••••" required minlength="6">
+                </div>
+            </div>
+            <button type="submit" id="auth-submit-btn" class="w-full btn-imperial font-cinzel font-bold py-3 rounded mt-4">
+                Enter the Court
+            </button>
+        </form>
+
+        <div class="mt-6 text-center text-sm">
+            <button id="toggle-auth-mode" class="text-gray-400 hover:text-gold transition-colors duration-300">
+                New Recruit? <span class="text-crimson font-bold border-b border-crimson pb-1">Enlist Here</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- Main Dashboard View (Hidden by default) -->
+    <div id="dashboard-view" class="w-full max-w-4xl hidden flex flex-col gap-6 mt-6 pb-12">
+        
+        <!-- Header -->
+        <header class="flex flex-col sm:flex-row justify-between items-center bg-black bg-opacity-50 p-6 rounded-lg ornate-border">
+            <div class="flex items-center gap-4 mb-4 sm:mb-0">
+                <div class="w-12 h-12 rounded-full bg-crimson border-2 border-imperial flex items-center justify-center shadow-[0_0_15px_rgba(139,0,0,0.8)]">
+                    <i class="fa-solid fa-chess-king text-gold text-2xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-cinzel text-2xl sm:text-3xl font-bold text-gold tracking-wide shadow-black drop-shadow-lg">Activity Tracker</h1>
+                    <p class="text-xs text-gray-400 tracking-widest uppercase">ID: <span id="user-id-display" class="text-gray-500">...</span></p>
+                </div>
+            </div>
+            <button id="logout-btn" class="px-4 py-2 bg-transparent border border-red-900 text-red-500 hover:bg-red-900 hover:text-white rounded text-sm uppercase tracking-wide transition-all font-bold">
+                <i class="fa-solid fa-right-from-bracket mr-2"></i> Abdicate
+            </button>
+        </header>
+
+        <!-- Napoleon Quote Section -->
+        <section class="ornate-border p-6 rounded-lg relative overflow-hidden group">
+            <div class="absolute -right-10 -top-10 opacity-10 text-gold text-9xl pointer-events-none">
+                <i class="fa-solid fa-leaf"></i>
+            </div>
+            <div class="relative z-10 flex flex-col items-center text-center">
+                <i class="fa-solid fa-quote-left text-crimson text-2xl mb-3"></i>
+                <p id="quote-text" class="font-cinzel text-lg sm:text-xl md:text-2xl text-gray-200 mb-4 leading-relaxed font-semibold">
+                    "Loading imperial wisdom..."
+                </p>
+                <div class="flex items-center gap-2 text-gold font-bold text-sm tracking-widest uppercase">
+                    <i class="fa-solid fa-minus"></i> Napoleon Bonaparte <i class="fa-solid fa-minus"></i>
+                </div>
+                <button id="new-quote-btn" class="mt-5 px-4 py-1.5 border border-gold text-gold text-xs uppercase tracking-wider rounded hover:bg-gold hover:text-black transition-colors bg-black bg-opacity-40">
+                    Draw Inspiration
+                </button>
+            </div>
+        </section>
+
+        <!-- Add Task Section -->
+        <section class="ornate-border p-1 rounded-lg bg-black bg-opacity-60">
+            <form id="task-form" class="flex flex-col sm:flex-row gap-2 p-3">
+                <input type="text" id="new-task-input" class="flex-1 input-imperial py-3 px-4 rounded font-inter text-sm md:text-base placeholder-gray-600" placeholder="Declare your next conquest (task)..." required>
+                <button type="submit" class="btn-imperial px-8 py-3 rounded font-cinzel font-bold whitespace-nowrap">
+                    <i class="fa-solid fa-plus mr-2"></i> Decree
+                </button>
+            </form>
+        </section>
+
+        <!-- Task List Section -->
+        <section class="bg-black bg-opacity-40 rounded-lg p-1">
+            <div class="flex justify-between items-center mb-4 px-2 pt-2 border-b border-gray-800 pb-2">
+                <h2 class="font-cinzel text-xl text-gold font-bold"><i class="fa-solid fa-scroll mr-2 text-crimson"></i> Daily Directives</h2>
+                <span id="task-counter" class="text-xs bg-gray-800 text-gray-300 px-2 py-1 rounded">0 / 0 Completed</span>
+            </div>
+            
+            <ul id="task-list" class="space-y-3 p-2 min-h-[200px]">
+                <!-- Tasks will be injected here by JS -->
+                <li class="text-center text-gray-600 py-10 font-cinzel italic text-sm">
+                    No directives found. Issue your first decree.
+                </li>
+            </ul>
+        </section>
+
+    </div>
+
+    <!-- Firebase & App Logic -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInWithCustomToken, signInAnonymously, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, collection, onSnapshot, addDoc, updateDoc, deleteDoc, serverTimestamp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global environment variables handling
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'gremory-napoleon-tracker';
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            // Provide dummy fallback for standalone visual testing without errors (will fail real db calls)
+            apiKey: "dummy", authDomain: "dummy", projectId: "dummy"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+
+        // State
+        let currentUserId = null;
+        let unsubscribeTasks = null;
+        let isSignUpMode = false;
+        let tasksArray = [];
+
+        // Napoleon Quotes
+        const quotes = [
+            "Victory belongs to the most persevering.",
+            "A leader is a dealer in hope.",
+            "Never interrupt your enemy when he is making a mistake.",
+            "Courage is not having the strength to go on; it is going on when you don't have strength.",
+            "In politics, stupidity is not a handicap.",
+            "Show me a family of readers, and I will show you the people who move the world.",
+            "History is a set of lies agreed upon.",
+            "Imagination rules the world.",
+            "Nothing is more difficult, and therefore more precious, than to be able to decide.",
+            "Take time to deliberate, but when the time for action comes, stop thinking and go in.",
+            "Death is nothing, but to live defeated and inglorious is to die daily.",
+            "Impossible is a word to be found only in the dictionary of fools."
+        ];
+
+        // DOM Elements
+        const authView = document.getElementById('auth-view');
+        const dashboardView = document.getElementById('dashboard-view');
+        
+        const authForm = document.getElementById('auth-form');
+        const emailInput = document.getElementById('email-input');
+        const passwordInput = document.getElementById('password-input');
+        const authSubmitBtn = document.getElementById('auth-submit-btn');
+        const toggleAuthModeBtn = document.getElementById('toggle-auth-mode');
+        const logoutBtn = document.getElementById('logout-btn');
+        const userIdDisplay = document.getElementById('user-id-display');
+
+        const quoteText = document.getElementById('quote-text');
+        const newQuoteBtn = document.getElementById('new-quote-btn');
+        
+        const taskForm = document.getElementById('task-form');
+        const newTaskInput = document.getElementById('new-task-input');
+        const taskList = document.getElementById('task-list');
+        const taskCounter = document.getElementById('task-counter');
+
+        const messageBox = document.getElementById('message-box');
+        const messageText = document.getElementById('message-text');
+        const messageIcon = document.getElementById('message-icon');
+
+        // Utilities
+        function showMessage(msg, isError = false) {
+            messageText.textContent = msg;
+            messageBox.className = `ornate-border px-6 py-4 rounded shadow-2xl flex items-center gap-3 show ${isError ? 'border-red-500' : 'border-gold'}`;
+            messageIcon.className = isError ? 'fa-solid fa-circle-exclamation text-red-500' : 'fa-solid fa-circle-check text-gold';
+            
+            setTimeout(() => {
+                messageBox.classList.remove('show');
+            }, 4000);
+        }
+
+        function generateQuote() {
+            const randomIndex = Math.floor(Math.random() * quotes.length);
+            quoteText.style.opacity = 0;
+            setTimeout(() => {
+                quoteText.textContent = `"${quotes[randomIndex]}"`;
+                quoteText.style.opacity = 1;
+                quoteText.style.transition = "opacity 0.5s ease";
+            }, 300);
+        }
+
+        // Authentication Flow
+        async function initializeAppAuth() {
+            // First respect the platform's initial token if provided
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                try {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                    // Auth state listener will handle the UI transition
+                    return;
+                } catch (error) {
+                    console.error("Failed custom token auth:", error);
+                    showMessage("Imperial Seal invalid. Please log in manually.", true);
+                }
+            }
+            // If no token, wait for user action on the form
+        }
+
+        onAuthStateChanged(auth, (user) => {
+            if (user) {
+                currentUserId = user.uid;
+                userIdDisplay.textContent = currentUserId.substring(0, 12) + '...';
+                authView.classList.add('hidden');
+                dashboardView.classList.remove('hidden');
+                generateQuote();
+                loadTasks();
+                showMessage("Welcome to the Imperial Court.");
+            } else {
+                currentUserId = null;
+                if (unsubscribeTasks) {
+                    unsubscribeTasks();
+                    unsubscribeTasks = null;
+                }
+                tasksArray = [];
+                renderTasks();
+                authView.classList.remove('hidden');
+                dashboardView.classList.add('hidden');
+            }
+        });
+
+        // Auth Form Logic
+        toggleAuthModeBtn.addEventListener('click', () => {
+            isSignUpMode = !isSignUpMode;
+            if (isSignUpMode) {
+                authSubmitBtn.innerHTML = "Enlist in the Ranks";
+                toggleAuthModeBtn.innerHTML = `Already Enlisted? <span class="text-crimson font-bold border-b border-crimson pb-1">Enter Here</span>`;
+            } else {
+                authSubmitBtn.innerHTML = "Enter the Court";
+                toggleAuthModeBtn.innerHTML = `New Recruit? <span class="text-crimson font-bold border-b border-crimson pb-1">Enlist Here</span>`;
+            }
+        });
+
+        authForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = emailInput.value.trim();
+            const password = passwordInput.value.trim();
+            
+            try {
+                authSubmitBtn.disabled = true;
+                authSubmitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Authenticating...';
+                
+                if (isSignUpMode) {
+                    await createUserWithEmailAndPassword(auth, email, password);
+                } else {
+                    await signInWithEmailAndPassword(auth, email, password);
+                }
+                emailInput.value = '';
+                passwordInput.value = '';
+            } catch (error) {
+                let errorMsg = "Authentication failed.";
+                if (error.code === 'auth/email-already-in-use') errorMsg = "Email is already enlisted.";
+                if (error.code === 'auth/invalid-credential') errorMsg = "Invalid decree or seal.";
+                if (error.code === 'auth/weak-password') errorMsg = "Seal is too weak (min 6 chars).";
+                showMessage(errorMsg, true);
+            } finally {
+                authSubmitBtn.disabled = false;
+                authSubmitBtn.innerHTML = isSignUpMode ? "Enlist in the Ranks" : "Enter the Court";
+            }
+        });
+
+        logoutBtn.addEventListener('click', async () => {
+            try {
+                await signOut(auth);
+                showMessage("You have departed the Imperial Court.");
+            } catch (error) {
+                showMessage("Failed to depart.", true);
+            }
+        });
+
+        newQuoteBtn.addEventListener('click', generateQuote);
+
+        // Database Logic (Firestore)
+        // Rule 1: Strict Paths - /artifacts/{appId}/users/{userId}/activities
+        // Rule 2: No Complex Queries - Fetch all, sort in memory
+
+        function loadTasks() {
+            if (!currentUserId) return;
+
+            const tasksRef = collection(db, 'artifacts', appId, 'users', currentUserId, 'activities');
+            
+            unsubscribeTasks = onSnapshot(tasksRef, (snapshot) => {
+                tasksArray = [];
+                snapshot.forEach((doc) => {
+                    tasksArray.push({ id: doc.id, ...doc.data() });
+                });
+                
+                // In-memory sort by creation time (descending) to avoid indexing errors
+                tasksArray.sort((a, b) => {
+                    const timeA = a.createdAt ? a.createdAt.toMillis() : 0;
+                    const timeB = b.createdAt ? b.createdAt.toMillis() : 0;
+                    return timeB - timeA;
+                });
+                
+                renderTasks();
+            }, (error) => {
+                console.error("Firestore Error:", error);
+                showMessage("Failed to load directives. Check connection.", true);
+            });
+        }
+
+        taskForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            if (!currentUserId) return;
+            
+            const text = newTaskInput.value.trim();
+            if (!text) return;
+
+            const submitBtn = taskForm.querySelector('button');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i>';
+
+            try {
+                const tasksRef = collection(db, 'artifacts', appId, 'users', currentUserId, 'activities');
+                await addDoc(tasksRef, {
+                    text: text,
+                    completed: false,
+                    createdAt: serverTimestamp()
+                });
+                newTaskInput.value = '';
+            } catch (error) {
+                console.error(error);
+                showMessage("Failed to issue decree.", true);
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fa-solid fa-plus mr-2"></i> Decree';
+            }
+        });
+
+        // Expose functions to global scope for inline HTML event handlers
+        window.toggleTask = async function(taskId, currentStatus) {
+            if (!currentUserId) return;
+            try {
+                const taskRef = doc(db, 'artifacts', appId, 'users', currentUserId, 'activities', taskId);
+                await updateDoc(taskRef, {
+                    completed: !currentStatus
+                });
+            } catch (error) {
+                showMessage("Failed to update directive.", true);
+            }
+        };
+
+        window.deleteTask = async function(taskId) {
+            if (!currentUserId) return;
+            try {
+                const taskRef = doc(db, 'artifacts', appId, 'users', currentUserId, 'activities', taskId);
+                await deleteDoc(taskRef);
+            } catch (error) {
+                showMessage("Failed to discard directive.", true);
+            }
+        };
+
+        function renderTasks() {
+            taskList.innerHTML = '';
+            
+            if (tasksArray.length === 0) {
+                taskList.innerHTML = `<li class="text-center text-gray-500 py-10 font-cinzel italic text-sm">No directives found. Issue your first decree.</li>`;
+                taskCounter.textContent = `0 / 0 Completed`;
+                return;
+            }
+
+            let completedCount = 0;
+
+            tasksArray.forEach(task => {
+                if (task.completed) completedCount++;
+                
+                const li = document.createElement('li');
+                li.className = `task-item flex items-center justify-between p-4 bg-obsidian-light rounded-md mb-2 ${task.completed ? 'task-completed' : ''}`;
+                
+                li.innerHTML = `
+                    <div class="flex items-center gap-4 flex-1 overflow-hidden">
+                        <label class="checkbox-container">
+                            <input type="checkbox" ${task.completed ? 'checked' : ''} onchange="window.toggleTask('${task.id}', ${task.completed})">
+                            <span class="checkmark"></span>
+                        </label>
+                        <span class="font-inter text-sm md:text-base break-words flex-1 ${task.completed ? 'text-gray-500' : 'text-gray-200'}">${escapeHTML(task.text)}</span>
+                    </div>
+                    <button onclick="window.deleteTask('${task.id}')" class="ml-4 p-2 text-gray-500 hover:text-crimson transition-colors" title="Discard Decree">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                `;
+                taskList.appendChild(li);
+            });
+
+            taskCounter.textContent = `${completedCount} / ${tasksArray.length} Completed`;
+        }
+
+        function escapeHTML(str) {
+            return str.replace(/[&<>'"]/g, 
+                tag => ({
+                    '&': '&amp;',
+                    '<': '&lt;',
+                    '>': '&gt;',
+                    "'": '&#39;',
+                    '"': '&quot;'
+                }[tag])
+            );
+        }
+
+        // Initialize
+        initializeAppAuth();
+
+    </script>
+</body>
+</html>
