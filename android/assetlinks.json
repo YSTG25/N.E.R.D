@@ -1,0 +1,14 @@
+[
+  {
+    "relation": [
+      "delegate_permission/common.handle_all_urls"
+    ],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "io.github.ystg25.twa",
+      "sha256_cert_fingerprints": [
+        "BA:F0:29:A8:35:C6:DA:B8:DD:B7:5A:8E:88:2B:48:B5:49:37:84:2E:5F:47:BB:2D:C2:D8:61:EE:7F:5D:E0:BD"
+      ]
+    }
+  }
+]
